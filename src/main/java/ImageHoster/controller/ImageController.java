@@ -93,13 +93,31 @@ public class ImageController {
     //The method first needs to convert the list of all the tags to a string containing all the tags separated by a comma and then add this string in a Model type object
     //This string is then displayed by 'edit.html' file as previous tags of an image
     @RequestMapping(value = "/editImage")
-    public String editImage(@RequestParam("imageId") Integer imageId, Model model) {
+    public String editImage(@RequestParam("imageId") Integer imageId, Model model, HttpSession session) {
         Image image = imageService.getImage(imageId);
-
         String tags = convertTagsToString(image.getTags());
         model.addAttribute("image", image);
-        model.addAttribute("tags", tags);
-        return "images/edit";
+        String error = "Only the owner of the image can edit the image";
+        Boolean ValidateUser = userValidation(image.getUser(), session);
+        if (!ValidateUser) {
+            model.addAttribute("editError", error);
+            return "images/image";
+        } else {
+            model.addAttribute("tags", tags);
+            return "images/edit";
+        }
+
+    }
+
+    private Boolean userValidation(User user, HttpSession session) {
+
+        User sessionUser = (User) session.getAttribute("loggeduser");
+
+        if (user.getId() == sessionUser.getId()) {
+            return true;
+        } else
+            return false;
+
     }
 
     //This controller method is called when the request pattern is of type 'images/edit' and also the incoming request is of PUT type
@@ -114,8 +132,7 @@ public class ImageController {
     //The method also receives tags parameter which is a string of all the tags separated by a comma using the annotation @RequestParam
     //The method converts the string to a list of all the tags using findOrCreateTags() method and sets the tags attribute of an image as a list of all the tags
     @RequestMapping(value = "/editImage", method = RequestMethod.PUT)
-    public String editImageSubmit(@RequestParam("file") MultipartFile file, @RequestParam("imageId") Integer imageId, @RequestParam("tags") String tags, Image updatedImage, HttpSession session) throws IOException {
-
+    public String editImageSubmit(@RequestParam("file") MultipartFile file, @RequestParam("imageId") Integer imageId, @RequestParam("tags") String tags, Image updatedImage, HttpSession session, Model model) throws IOException {
         Image image = imageService.getImage(imageId);
         String updatedImageData = convertUploadedFileToBase64(file);
         List<Tag> imageTags = findOrCreateTags(tags);
@@ -133,7 +150,8 @@ public class ImageController {
         updatedImage.setDate(new Date());
 
         imageService.updateImage(updatedImage);
-        return "redirect:/images/" + updatedImage.getTitle();
+        model.addAttribute("images", updatedImage);
+        return "redirect:/images/" + updatedImage.getId() + "/" + updatedImage.getTitle();
     }
 
 
@@ -141,9 +159,20 @@ public class ImageController {
     //The method calls the deleteImage() method in the business logic passing the id of the image to be deleted
     //Looks for a controller method with request mapping of type '/images'
     @RequestMapping(value = "/deleteImage", method = RequestMethod.DELETE)
-    public String deleteImageSubmit(@RequestParam(name = "imageId") Integer imageId) {
-        imageService.deleteImage(imageId);
-        return "redirect:/images";
+    public String deleteImageSubmit(@RequestParam(name = "imageId") Integer imageId, HttpSession session, Model model) {
+        String deleteError = "Only the owner of the image can delete the image";
+        Image image = imageService.getImage(imageId);
+        String tags = convertTagsToString(image.getTags());
+        model.addAttribute("image", image);
+        Boolean validUser = userValidation(image.getUser(), session);
+        if (!validUser) {
+            model.addAttribute("deleteError", deleteError);
+
+            return "images/image";
+        } else {
+            imageService.deleteImage(imageId);
+            return "redirect:/images";
+        }
     }
 
 
@@ -177,6 +206,10 @@ public class ImageController {
     //Converts the list of all tags to a single string containing all the tags separated by a comma
     //Returns the string
     private String convertTagsToString(List<Tag> tags) {
+
+        if (tags == null || tags.isEmpty()) {
+            return "";
+        }
         StringBuilder tagString = new StringBuilder();
 
         for (int i = 0; i <= tags.size() - 2; i++) {
