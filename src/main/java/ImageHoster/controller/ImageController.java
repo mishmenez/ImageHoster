@@ -46,6 +46,7 @@ public class ImageController {
     //First receive the dynamic parameter in the incoming request URL in a string variable 'title' and also the Model type object
     //Call the getImageByTitle() method in the business logic to fetch all the details of that image
     //Add the image in the Model type object with 'image' as the key
+    //Comments are fetched using  getComments and added in the model object
     //Return 'images/image.html' file
 
     //Also now you need to add the tags of an image in the Model type object
