@@ -1,9 +1,13 @@
 #Image Hoster Project 
+
 Requirements for Project:
 
 This is an imageHoster Project which is Built Using Spring 
+
 To-Do Tasks
+
 Part A: Fixing Issues
+
 1. Image upload issues:
 
 If you upload an image with the same exact title as of a previously uploaded image, it will get uploaded. But then, if you try to navigate to one of the images with the same title, the image uploader will display an error.
@@ -25,6 +29,7 @@ Up till now, there is no check on the strength of the password entered by the us
 Observe the registration web page and the password does not contain any number or special character as shown below:
 
 Part B: Implement a new feature
+
 After fixing the above issues, please implement the following features into the image uploader application:
 
 1.  Password Strength
